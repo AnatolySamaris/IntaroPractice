@@ -1,3 +1,6 @@
 controllers:
     resource: ../src/Controller/
     type: attribute
+retailcrm_orders:
+    path: /retailcrm/orders
+    controller: App\Controller\RetailCRMController::getOrders
