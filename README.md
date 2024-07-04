@@ -21,6 +21,7 @@
 6. Установка Symfony
 7. Заходим в контейнер php `docker exec -it php81-container bash`
 8. Прописываем команду `composer install`
+9. Запускаем сервер: `symfony server:start --port=8080 -d`
 
 ## В папке postgres лежит файл дампа базы данных, который нужно выполнить
 
