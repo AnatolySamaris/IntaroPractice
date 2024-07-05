@@ -1,25 +1,18 @@
-/* eslint-env node */
-require('@rushstack/eslint-patch/modern-module-resolution')
-
 module.exports = {
   root: true,
-  env: {
-    node: true
-  },
-  extends: ['plugin:vue/essential', 'eslint:recommended', '@vue/prettier'],
-  parserOptions: {
-    parser: '@babel/eslint-parser',
-    requireConfigFile: false
-  },
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react-hooks/recommended',
+  ],
+  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['react-refresh'],
   rules: {
-    // Настройки правил ESLint...
+    'react-refresh/only-export-components': [
+      'warn',
+      { allowConstantExport: true },
+    ],
   },
-  overrides: [
-    {
-      files: ['*.css'],
-      rules: {
-        'css/**': 'off'
-      }
-    }
-  ]
 }
