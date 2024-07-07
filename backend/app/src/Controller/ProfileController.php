@@ -3,15 +3,15 @@
 namespace App\Controller;
 
 
-use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+//use App\Entity\User;
+//use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-#[Route('/api/v1')]
+#[Route('/api/v1/profile')]
 class ProfileController extends AbstractController
 {
     private $httpClient;
@@ -25,7 +25,7 @@ class ProfileController extends AbstractController
     /**
      * Вспомогательный метод для обращения к апи, все обработки ошибок запроса здесь.
      */
-    private function callApi(string $method, string $url, array $headers=null)
+    private function callApi(string $method, string $url, array $query=null, array $headers=null)
     {
         if (is_null($headers)) {
             $headers = [
@@ -36,7 +36,8 @@ class ProfileController extends AbstractController
 
         try {
             $response = $this->httpClient->request($method, $url, [
-                'headers' => $headers
+                'query' => $query,
+                'headers' => $headers,
             ]);
     
             if ($response->getStatusCode() != 200) {
@@ -62,74 +63,120 @@ class ProfileController extends AbstractController
 
 
     /**
-     * Получаем профиль юзера по его id, хранящемуся в нашей базе данных.
+     * Получаем личные данные юзера по его id, хранящемуся в нашей базе данных.
      * 
-     * В случае успеха возвращает ответ вида: ...
+     * В случае успеха возвращает объект с полями 
+     *  firstName, lastName, patronymic, sex, email, phones, birthday, address.
      * В случае ошибки возвращает ответ вида: {'message': $error_message}
      */
-    #[Route('/profile/{id}', name: 'get_profile', methods: ['get'])]
-    public function getProfile(int $id): JsonResponse
+    #[Route('/info/{id}', name: 'get_profile_info', methods: ['get'])]
+    public function getProfileInfo(int $id): JsonResponse
     //public function getProfile(int $id, EntityManagerInterface $doctrine): JsonResponse
     {
-        
         //$user = $doctrine->getRepository(User::class)->find($id);
         $user = 'not null';
-
         if ($user) {
             //$externalId = $user->getExternalId();
-            $externalId = $this->getParameter('TEMP_EXTERNALID');
+            $externalId = $this->getParameter('temp_externalId');
             $url = 'https://popova.retailcrm.ru/api/v5/customers/' . $externalId;
             $response = $this->callApi('GET', $url);
 
             if ($response['ok']) {
-                $data = array();
-                $customer = $response['customer'];
+                $customer = $response['data']['customer'];
 
-                // Работаем с личными данными
-                $firstName = $customer['firstName'];
-                $lastName = isset($customer['lastname']) ? $customer['lastname'] : '';
-                $patronymic = isset($customer['patronymic']) ? $customer['patronymic'] : '';
-                $sex = $customer['sex'];
-                $email = $customer['email'];
-                $phones = array_map(fn($phone) => $phone['number'], $customer['phones']);
-                $birthday = $customer['birthday'];
-                $address = $customer['address']['text'];
-
-                $data['personalInfo'] = [
-                    $firstName, $lastName, $patronymic, $sex, $email, $phones, $birthday, $address
+                $data = [
+                    'firstName' => $customer['firstName'],
+                    'lastName' => $customer['lastName'] ?? '',
+                    'patronymic' => $customer['patronymic'] ?? '',
+                    'sex' => $customer['sex'],
+                    'email' => $customer['email'],
+                    'phones' => array_map(fn($phone) => $phone['number'], $customer['phones']),
+                    'birthday' => $customer['birthday'],
+                    'address' => $customer['address']['text'],
                 ];
-
-
-                // Работаем с историей заказов
-                $url = 'https://popova.retailcrm.ru/api/v5/orders?filter[customerExternalId]=' . $externalId;
-                $response = $this->callApi('GET', $url);
-
-                if ($response['ok']) {
-                    $orders = $response['orders'];
-                    $orders_data = array();
-
-                    foreach ($orders as $order) {
-                        $number = $order['number'];
-                        $createdAt = $order['createdAt'];
-                        $status = $order['status'];
-                        $totalSumm = $order['totalSumm'];
-                        $items = $order['items'];
-                        $orders_data[] = array($number, $createdAt, $status, $totalSumm, $items);
-                    }
-
-                    // Можно отсортировать по createdAt
-
-                    $data['ordersHistory'] = $orders_data;
-
-                } else {
-                    return $this->json(['message' => $response['message']], 500);
-                }
+                
 
                 return $this->json($data, 200);
 
             } else {
                 return $this->json(['message' => $response['message']], 500);
             }
+        } else {
+            return $this->json(['message' => 'User not found.'], 400);
+        }
+    }
+
+    /**
+     * Получаем историю заказов юзера по его id, хранящемуся в нашей базе данных.
+     * 
+     * В случае успеха возвращает ответ вида:
+     * {
+     * 'pagination': {'limit': ...(20|50|100), 'totalCount': ..., 'currentPage': ..., 'totalPageCount': ...},
+     * 'orders': [...]
+     * } 
+     * Массив orders содержит объекты заказов с полями number, createdAt, status, totalSum, items.
+     * 
+     * В случае ошибки возвращает ответ вида: {'message': $error_message}
+     */
+    #[Route('/history/{id}', name: 'get_profile_history', methods: ['get'])]
+    public function getProfileHistory(int $id): JsonResponse
+    //public function getProfile(int $id, EntityManagerInterface $doctrine): JsonResponse
+    {
+        //$user = $doctrine->getRepository(User::class)->find($id);
+        $user = 'not null';
+        if ($user) {
+            //$externalId = $user->getExternalId();
+            $externalId = $this->getParameter('temp_externalId');
+            $url = 'https://popova.retailcrm.ru/api/v5/orders';
+            $query = ['filter[customerExternalId]' => $externalId];
+            $response = $this->callApi('GET', $url, $query);
+
+            if ($response['ok']) {
+                $data = array(
+                    'pagination' => $response['data']['pagination']
+                );
+                $orders = $response['data']['orders'];
+                $orders_data = array();
+
+                foreach ($orders as $order) {
+                    $orders_data[] = array(
+                        'number' => $order['number'],
+                        'createdAt' => $order['createdAt'],
+                        'status' => $order['status'],
+                        'totalSumm' => $order['totalSumm'],
+                        'items' => $order['items']
+                    );
+                }
+
+                // Можно отсортировать по createdAt, по убыванию
+                usort($orders_data, function($a, $b) {
+                    return strtotime($b['createdAt']) <=> strtotime($a['createdAt']);
+                });
+
+                $data['orders'] = $orders_data;
+
+                return $this->json($data, 200);
+
+            } else {
+                return $this->json(['message' => $response['message']], 500);
+            }
+        } else {
+            return $this->json(['message' => 'User not found.'], 400);
+        }
+    }
+
+    #[Route('/info/{id}', name: 'edit_profile_info', methods: ['put', 'patch'])]
+    public function editProfileInfo(int $id): JsonResponse
+    //public function getProfile(int $id, EntityManagerInterface $doctrine): JsonResponse
+    {
+        //$user = $doctrine->getRepository(User::class)->find($id);
+        $user = 'not null';
+        if ($user) {
+            $data = array();
+
+
+
+            return $this->json($data, 200);
         } else {
             return $this->json(['message' => 'User not found.'], 400);
         }
