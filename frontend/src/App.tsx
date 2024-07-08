@@ -1,27 +1,9 @@
-// import { useState } from "react";
-import styles from "./styles/App.module.css";
+import MainPage from "./pages/mainPage/mainPage";
 
 function App() {
-  // const [count, setCount] = useState(0);
   return (
     <>
-      <header className={styles.header}>
-        <div className="header-left">
-          <h1>Современная одежда</h1>
-        </div>
-        <div className={styles.headerRight}>
-          <h1 className={styles.phone}>8-800-555-35-35</h1>
-          <div className={styles.searchPanel}></div>
-        </div>
-      </header>
-      <main className={styles.main}></main>
-      <footer className={styles.footer}>
-        <div className="footer-logo">
-          <p className={styles.footerText}>
-            @ Интернет магазин одежды, 2024 - IntaroDPO
-          </p>
-        </div>
-      </footer>
+      <MainPage />
     </>
   );
 }
