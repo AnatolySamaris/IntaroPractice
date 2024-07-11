@@ -10,6 +10,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/api/v1/profile')]
@@ -26,12 +29,12 @@ class ProfileController extends AbstractController
     /**
      * Вспомогательный метод для обращения к апи, все обработки ошибок запроса здесь.
      */
-    private function callApi(string $method, string $url, array $query=null, array $headers=null, array $body=null): array
+    private function callApi(string $method, string $url, array|string $query=null, array $headers=null, array|string $body=null): array
     {
         if (is_null($headers)) {
             $headers = [
                 'X-API-Key' => $this->getParameter('api_key'),
-                'Content-Type' => 'application/json',
+                'Content-Type' => ($method == 'GET') ? 'application/json' : 'application/x-www-form-urlencoded',
             ];
         }
 
@@ -43,7 +46,7 @@ class ProfileController extends AbstractController
             ]);
     
             if ($response->getStatusCode() != 200) {
-                throw new \Exception('Failed to fetch data: ' . $response->getStatusCode());
+                throw new \Exception('Failed to fetch data: ' . $response->getContent());
             }
 
             $data = json_decode($response->getContent(), true);
@@ -66,7 +69,7 @@ class ProfileController extends AbstractController
     /**
      * Базовая валидация параметров.
      */
-    private function validateParam(string|int|float $param, bool $email=false): bool
+    private function validateParam(string|int|float $param, bool $email=false, bool $phone=false): bool
     {
         if (is_null($param)) {
             return false;
@@ -76,8 +79,14 @@ class ProfileController extends AbstractController
             if (strlen($param) == 0) {
                 return false;
             } else {
-                if ($email) {
-                    $reg = '/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/';
+                if ($email || $phone) {
+                    $reg = '';
+                    if ($email) {
+                        $reg = '/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/';
+                    } else if ($phone) {
+                        $reg = "/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/";
+                        return true;    // !!!!!
+                    }
                     if (preg_match($reg, $param)) {
                         return true;
                     } else {
@@ -123,11 +132,13 @@ class ProfileController extends AbstractController
                     'patronymic' => $customer['patronymic'] ?? '',
                     'sex' => $customer['sex'],
                     'email' => $customer['email'],
-                    'phones' => array_map(fn($phone) => $phone['number'], $customer['phones']),
                     'birthday' => $customer['birthday'],
-                    'address' => $customer['address']['text'],
+                    'address' => $customer['address']['text']
                 ];
                 
+                foreach ($customer['phones'] as $phone) {
+                    $data['phones'][]['number'] = $phone['number'];
+                }
 
                 return $this->json($data, 200);
 
@@ -200,9 +211,10 @@ class ProfileController extends AbstractController
 
     /**
      * Изменяем личные данные пользователя.
-     * При отправке запроса необходимо отправлять все данные из формы,
-     * в том числе те, которые не изменились.
+     * При отправке запроса можно отправлять только те данные, которые изменяются
+     * (например, только поле firstName с новым значением).
      * Работает с полями firstName, lastName, patronymic, phones, email, birthday, sex, address.
+     * 
      * phones передавать в строке, разделяя знаком ";" без пробелов, если значений несколько.
      * 
      * При успешном запросе возвращает объект пользователя с измененными полями.
@@ -224,8 +236,7 @@ class ProfileController extends AbstractController
                 if (!in_array($key, $check_params_array)) {
                     return $this->json([
                         'message' => 'Invalid parameter key: ' . $key,
-                        400
-                    ]);
+                    ], 400);
                 }
             }
 
@@ -233,7 +244,8 @@ class ProfileController extends AbstractController
             foreach ($request->request->all() as $key => $value) {
                 if (($key == 'firstName' && !$this->validateParam($value)) ||
                     ($key == 'sex' && !in_array($value, ['male', 'female'])) ||
-                    ($key == 'email' && !$this->validateParam($value, true))
+                    ($key == 'email' && !$this->validateParam($value, email: true)) ||
+                    ($key == 'phones' && !$this->validateParam($value, phone: true))
                 ) {
                     return $this->json(['message' => 'Invalid parameter value.'], 400);
                 }
@@ -248,24 +260,68 @@ class ProfileController extends AbstractController
             if ($response['ok']) {
                 $customer = $response['data']['customer'];
 
-                $customer['firstName'] = $request->request->get('firstName');
-                $customer['lastName'] = $request->request->get('lastName', '');
-                $customer['patronymic'] = $request->request->get('patronymic', '');
-                $customer['sex'] = $request->request->get('sex', '');
-                $customer['email'] = $request->request->get('email', '');
-                $customer['birthday'] = $request->request->get('birthday');
-                $customer['address']['text'] = $request->request->get('address');
+                // Если новое значение не задано - ставим значение, которое было.
+                // Если такого поля вообще не было - ставим его со значением пустой строки
+                $customer['firstName'] = $request->request->get('firstName', $customer['firstName'] ?? '');
+                $customer['lastName'] = $request->request->get('lastName', $customer['lastName'] ?? '');
+                $customer['patronymic'] = $request->request->get('patronymic', $customer['patronymic'] ?? '');
+                $customer['sex'] = $request->request->get('sex', $customer['sex'] ?? '');
+                $customer['email'] = $request->request->get('email', $customer['email'] ?? '');
+                $customer['birthday'] = $request->request->get('birthday', $customer['birthday'] ?? '');
+                $customer['address']['text'] = $request->request->get('address', $customer['address']['text'] ?? '');
 
-                $phones = array();
-                foreach (explode(';', $request->request->get('phones')) as $phone) {
-                    if (strlen($phone)) {
-                        $phones[] = array('number' => $phone);
+                if ($request->request->has('phones')) {
+                    $phones = array();
+                    foreach (explode(';', $request->request->get('phones')) as $phone) {
+                        if (strlen($phone) > 0) {
+                            $phones[] = array('number' => $phone);
+                        }
                     }
+                    $customer['phones'] = $phones;
                 }
-                $customer['phones'] = $phones;
+
+
+                //return $this->json($customer, 200);
+
+                $serializer = new Serializer(
+                    [new ObjectNormalizer()],
+                    [new JsonEncoder()]
+                );
+
+                $customer_json = $serializer->serialize($customer, 'json');
+
+                //return $this->json($customer_json);
+                
+                $body = http_build_query(
+                    $customer,
+                    encoding_type: PHP_QUERY_RFC3986
+                );
+
+                $body2 = urlencode(json_encode($customer));
+
+                return $this->json(['enc' => $body, 'enc2' => $body2, 'serialized' => $customer_json, 'orig' => $customer]);
+
+                $url = 'https://popova.retailcrm.ru/api/v5/customers/'.$externalId.'/edit';
+
+                $response = $this->httpClient->request("POST", $url, [
+                    'headers' => [
+                        'X-API-Key' => $this->getParameter('api_key'),
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    ],
+                    //'query' => $body,
+                    'body' => [
+                        'by' => 'externalId',
+                        'site' => $this->getParameter('site_name'),
+                        'customer' => $body2
+                    ],
+                ]);
+                return $this->json(['answer' => $response->getContent()]);
+                
+                //return $this->json($body);
                 
                 $url = 'https://popova.retailcrm.ru/api/v5/customers/'.$externalId.'/edit';
-                $body = $customer;
+                //$body = $customer;
+                //$response = $this->callApi('POST', $url, body: $body);
                 $response = $this->callApi('POST', $url, body: $body);
                 if ($response['ok']) {
                     return $this->json($customer, 200);
