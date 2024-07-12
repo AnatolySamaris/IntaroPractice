@@ -4,22 +4,31 @@ namespace App\Controller;
 
 use App\Entity\Users;
 use App\Form\RegistrationFormType;
-use App\Security\LoginFormAuthAuthenticator;
+use App\Security\UsersAuthenticator;
+use App\Security\EmailVerifier;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+use RetailCrm\Api\Interfaces\ApiExceptionInterface;
+use RetailCrm\Api\Interfaces\UsersExceptionInterface;
+use RetailCrm\Api\Model\Entity\Customers\Customer;
+use RetailCrm\Api\Model\Entity\Customers\CustomerPhone;
+use RetailCrm\Api\Model\Request\Customers\CustomersCreateRequest;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 
-class RegistrationController extends AbstractController
+class RegistrationController extends BaseController
 {
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, LoginFormAuthAuthenticator $authenticator, EntityManagerInterface $entityManager): Response
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, UsersAuthenticator $authenticator, EntityManagerInterface $entityManager): Response
     {
         $user = new Users();
-        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form = $this->createForm(RegistrationFormType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -30,10 +39,43 @@ class RegistrationController extends AbstractController
                     $form->get('plainPassword')->getData()
                 )
             );
+            $user->setEmail($form->get('email')->getData());
+            $user->setUuid(uuid_create(UUID_TYPE_RANDOM));
 
             $entityManager->persist($user);
             $entityManager->flush();
-            // do anything else you need here, like send an email
+
+            $Users = $this->createRetailCrmUsers();
+
+            // заготовка для отправления запроса
+            $requestCustomer = new CustomersCreateRequest();
+            $requestCustomer->customer = new Customer();
+
+            // определение полей пользователя
+            // докю: https://github.com/retailcrm/api-Users-php/blob/fa0e8a7075aa0b72b87f5632af01f2b000a61f6e/doc/index.md
+            $requestCustomer->customer->externalId = (string)$user->getUuid();
+            $requestCustomer->customer->email  = $form->get('email')->getData();
+            $requestCustomer->customer->firstName = $form->get('firstname')->getData();
+            $requestCustomer->customer->lastName = $form->get('lastname')->getData();
+            $requestCustomer->customer->patronymic = $form->get('patronymic')->getData();
+            $requestCustomer->customer->phones = [new CustomerPhone()];
+            $requestCustomer->customer->phones[0]->number = $form->get('phone')->getData();
+            $requestCustomer->customer->birthday = $form->get('birthday')->getData();
+            $requestCustomer->customer->sex = $request->get('sex') == 2 ? 'female' : 'male';
+            
+            
+            // TODO дописать
+            // $requestCustomer->customer->address = $form->get('address');
+
+            try {
+                $response = $Users->customers->create($requestCustomer);
+                // dd($response);
+            } catch (ApiExceptionInterface | UsersExceptionInterface $exception) {
+                // удаляет пользователя
+                $entityManager->remove($user);
+                dd($exception);
+                exit(-1);
+            }
 
             return $userAuthenticator->authenticateUser(
                 $user,
@@ -44,6 +86,7 @@ class RegistrationController extends AbstractController
 
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
+            'header' => $this->getHeader()
         ]);
     }
 }

@@ -11,12 +11,15 @@
         "doctrine/doctrine-bundle": "^2.12",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.2",
+        "nyholm/psr7": "^1.8",
+        "retailcrm/api-client-php": "^6.14",
         "symfony/console": "6.1.*",
         "symfony/dotenv": "6.1.*",
         "symfony/flex": "^2",
         "symfony/form": "6.1.*",
         "symfony/framework-bundle": "6.1.*",
         "symfony/http-client": "6.1.*",
+        "symfony/polyfill-uuid": "^1.30",
         "symfony/runtime": "6.1.*",
         "symfony/security-bundle": "6.1.*",
         "symfony/twig-bundle": "6.1.*",
@@ -29,7 +32,9 @@
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
             "symfony/flex": true,
-            "symfony/runtime": true
+            "symfony/runtime": true,
+            "php-http/discovery": true,
+            "civicrm/composer-compile-plugin": true
         },
         "optimize-autoloader": true,
         "preferred-install": {
