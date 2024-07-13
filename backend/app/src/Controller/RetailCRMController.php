@@ -191,7 +191,7 @@ class RetailCRMController extends AbstractController
                 'Content-Type' => 'application/json',
             ],
             'query' => [
-                //'filter[groupExternalId]' => $groupId,
+                'filter[groupExternalId]' => $groupId,
                 //'filter[properties][size]' => 'S',
                 //'filter[properties][color]' => 'белый',
             ],
