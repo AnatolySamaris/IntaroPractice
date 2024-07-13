@@ -10,9 +10,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpFoundation\Request; 
 
 class BaseController extends AbstractController
 {
+
+    
     private $httpClient;
     private $cache;
 
@@ -21,6 +24,17 @@ class BaseController extends AbstractController
         $this->httpClient = $httpClient;
         $this->cache = $cache;
     }
+
+    public function uuid_get(Request $request): Response
+    {
+        $uuid = $request->getSession()->get('uuid');
+
+        // Используйте $uuid как необходимо
+        // ...
+
+        return new Response('Your UUID: ' . $uuid);
+    }
+    
 
     protected function createRetailCrmUsers()
     {
