@@ -17,3 +17,7 @@ retailcrm_orders2:
 retailcrm_orders3:
     path: /retailcrm/product/{productId}
     controller: App\Controller\RetailCRMController::getProductDetails
+
+retailcrm_orders6:
+    path: /retailcrm/products/{groupId}
+    controller: App\Controller\RetailCRMController::getProducts_category

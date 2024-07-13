@@ -12,7 +12,40 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class RetailCRMController extends AbstractController
 {
     private $httpClient;
+    //Нижнее белье
+    private $ID_Underwear=20;
 
+    //Аксессуары
+    private $ID_Accessories=19;
+
+    //Ремни
+    private $ID_Belts=26;
+    //Ремни Мужские
+    private $ID_Men_Belts=31;
+    //Ремни Женские
+    private $ID_Women_Belts=30;
+
+    //Обувь
+    private $ID_Shoes=21;
+
+    //Пантолеты
+    private $ID_Pantolets=27;
+    //Тапочки
+    private $ID_Slippers=28;
+    //Туфли
+    private $ID_Low_Shoes=29;
+    //Туфли Женские
+    private $ID_Women_Low_Shoes=32;
+    //Туфли Мужские
+    private $ID_Men_Low_Shoes=33;
+    //Платья
+    private $ID_Dresses=22;
+    //Спортивная Одежда
+    private $ID_Sportswear=23;
+    //Футболки
+    private $ID_T_shirts=24;
+    //Штаны
+    private $ID_Trousers=25;
     public function __construct(HttpClientInterface $httpClient)
     {
         $this->httpClient = $httpClient;
@@ -142,6 +175,69 @@ class RetailCRMController extends AbstractController
         }
 
         dump($data);
+        return new JsonResponse($data);
+    }
+
+    ///////////////////////////////////////////////////////////////////Продукты категории
+
+    /**
+     * @Route("/retailcrm/products/{groupId}", name="retailcrm_products_category")
+     */
+    public function getProducts_category(string $groupId): JsonResponse
+    {
+        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/products", [
+            'headers' => [
+                'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
+                'Content-Type' => 'application/json',
+            ],
+            'query' => [
+                //'filter[groupExternalId]' => $groupId,
+                //'filter[properties][size]' => 'S',
+                //'filter[properties][color]' => 'белый',
+            ],
+        ]);
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200) {
+            throw new \Exception('Не удалось получить данные: ' . $statusCode);
+        }
+
+        $content = $response->getContent();
+        $data = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
+        }
+
+        // Инициализация массива продуктов
+        $products = $data['products'] ?? [];
+
+        foreach ($products as &$product) {
+            $colors = [];
+            $sizes = [];
+
+            foreach ($product['offers'] as $offer) {
+                $properties = $offer['properties'] ?? [];
+
+                if (isset($properties['color']) && !in_array($properties['color'], $colors)) {
+                    $colors[] = $properties['color'];
+                }
+
+                if (isset($properties['size']) && !in_array($properties['size'], $sizes)) {
+                    $sizes[] = $properties['size'];
+                }
+            }
+
+            // Добавление массивов цветов и размеров к продукту
+            $product['colors'] = $colors;
+            $product['sizes'] = $sizes;
+        }
+
+        // Обновление данных продуктов
+        $data['products'] = $products;
+
+        //dump($data);
+
         return new JsonResponse($data);
     }
 
