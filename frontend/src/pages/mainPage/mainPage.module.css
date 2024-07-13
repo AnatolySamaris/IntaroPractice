@@ -1,0 +1,60 @@
+body {
+  margin: 0;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  background: rgb(201, 194, 194);
+}
+
+main {
+  /* Чтобы занимал оставшееся пространство */
+  flex-grow: 1;
+  min-height: 100vh;
+  background: white;
+}
+
+footer {
+  /* Чтобы footer не уменьшался */
+  flex-shrink: 0;
+  background: gray;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+
+.category {
+  display: flex;
+  gap: 2rem;
+}
+
+.textCategory {
+  cursor: pointer;
+}
+
+.textAuth {
+  cursor: pointer;
+}
+
+.auth {
+  display: flex;
+  gap: 2rem;
+}
+
+.card_style {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 16px;
+  justify-items: center;
+  margin-top: 2rem;
+}
