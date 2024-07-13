@@ -22,3 +22,8 @@ retailcrm_orders3:
 get_uuid:
     path: /uuid
     controller: App\Controller\BaseController::uuid_get
+
+
+retailcrm_orders6:
+    path: /retailcrm/products/
+    controller: App\Controller\RetailCRMController::getProducts_category
