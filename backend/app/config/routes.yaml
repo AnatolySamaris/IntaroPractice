@@ -4,3 +4,16 @@ controllers:
 retailcrm_orders:
     path: /retailcrm/orders
     controller: App\Controller\RetailCRMController::getOrders
+
+retailcrm_orders1:
+    path: /retailcrm/customer/{email}/orders
+    controller: App\Controller\RetailCRMController::getCustomerOrders
+
+
+retailcrm_orders2:
+    path: /retailcrm/user/{userID}/profile
+    controller: App\Controller\RetailCRMController::getUserProfile
+
+retailcrm_orders3:
+    path: /retailcrm/product/{productId}
+    controller: App\Controller\RetailCRMController::getProductDetails

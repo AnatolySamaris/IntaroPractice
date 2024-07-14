@@ -4,7 +4,7 @@
 
 ## Frontend
 
-Для запуска или установки Vue Vite требуется Node.js версии 18+ https://nodejs.org/en/
+Для запуска или установки React+ts Vite требуется Node.js версии 18+ https://nodejs.org/en/
 
 1. Заходим в папку frontend `cd frontend`
 2. Устанавливаем зависимости с помощью команды `npm install`
