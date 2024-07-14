@@ -7,12 +7,12 @@
         "php": ">=8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "doctrine/dbal": "*",
+        "doctrine/doctrine-bundle": "*",
+        "doctrine/doctrine-migrations-bundle": "*",
+        "doctrine/orm": "*",
         "nyholm/psr7": "^1.8",
         "retailcrm/api-client-php": "^6.14",
-        "doctrine/dbal": "^3",
-        "doctrine/doctrine-bundle": "^2.12",
-        "doctrine/doctrine-migrations-bundle": "^3.3",
-        "doctrine/orm": "^3.2",
         "symfony/console": "6.1.*",
         "symfony/dotenv": "6.1.*",
         "symfony/flex": "^2",
@@ -20,12 +20,12 @@
         "symfony/http-client": "6.1.*",
         "symfony/property-access": "6.1.*",
         "symfony/runtime": "6.1.*",
-        "symfony/serializer": "6.1.*",
-        "symfony/yaml": "6.1.*",
         "symfony/security-bundle": "6.1.*",
+        "symfony/serializer": "6.1.*",
         "symfony/twig-bundle": "6.1.*",
-        "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "symfony/yaml": "6.1.*",
+        "twig/extra-bundle": "*",
+        "twig/twig": "*"
     },
     "config": {
         "allow-plugins": {
@@ -79,7 +79,8 @@
         "symfony": {
             "allow-contrib": false,
             "require": "6.1.*"
-        }
+        },
+        "compile-whitelist": ["retailcrm/api-client-php"]
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.6",
