@@ -1,0 +1,6 @@
+{
+    "require": {
+        "symfony/monolog-bundle": "^3.10",
+        "symfony/security-bundle": "^7.1"
+    }
+}
