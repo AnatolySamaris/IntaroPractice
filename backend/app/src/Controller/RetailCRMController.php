@@ -145,6 +145,79 @@ class RetailCRMController extends AbstractController
         return new JsonResponse($data);
     }
 
+    public function getProducts_category(): JsonResponse
+    {
+        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/product-groups", [
+            'headers' => [
+                'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
+                'Content-Type' => 'application/json',
+            ],
+            'query' => [
+                //'filter[groupExternalId]' => $groupId,
+                //'filter[properties][size]' => 'S',
+                //'filter[properties][color]' => 'белый',
+            ],
+        ]);
+
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200) {
+            throw new \Exception('Не удалось получить данные: ' . $statusCode);
+        }
+
+
+        $content = $response->getContent();
+        $data = json_decode($content, true);
+
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
+        }
+
+
+        // Инициализация массива продуктов
+        $products = $data['products'] ?? [];
+
+
+        foreach ($products as &$product) {
+            $colors = [];
+            $sizes = [];
+
+
+            foreach ($product['offers'] as $offer) {
+                $properties = $offer['properties'] ?? [];
+
+
+                if (isset($properties['color']) && !in_array($properties['color'], $colors)) {
+                    $colors[] = $properties['color'];
+                }
+
+
+                if (isset($properties['size']) && !in_array($properties['size'], $sizes)) {
+                    $sizes[] = $properties['size'];
+                }
+            }
+
+
+            // Добавление массивов цветов и размеров к продукту
+            $product['colors'] = $colors;
+            $product['sizes'] = $sizes;
+        }
+
+
+        // Обновление данных продуктов
+        $data['products'] = $products;
+
+
+        //dump($data);
+
+
+        return new JsonResponse($data);
+    }
+
+
+
+
 
 }
 
