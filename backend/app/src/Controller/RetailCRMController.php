@@ -148,10 +148,11 @@ class RetailCRMController extends AbstractController
 
     //Страница товара
     /**
-     * @Route("/retailcrm/product/{productId}", name="retailcrm_product_details")
+     * @Route("/retailcrm/product/{productId}/{color}/{size}", name="retailcrm_product_details")
      */
-    public function getProductDetails(string $productId): JsonResponse
+    public function getProductDetails(string $productId, string $color, string $size): JsonResponse
     {
+        // Выполняем запрос к API с передачей параметров фильтрации
         $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/products", [
             'headers' => [
                 'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
@@ -159,25 +160,85 @@ class RetailCRMController extends AbstractController
             ],
             'query' => [
                 'filter[externalId]' => $productId,
+                'filter[properties][color]' => $color,
+                'filter[properties][size]' => $size,
             ],
         ]);
 
+        // Проверяем статус ответа
         $statusCode = $response->getStatusCode();
         if ($statusCode !== 200) {
             throw new \Exception('Не удалось получить данные: ' . $statusCode);
         }
 
+        // Получаем контент ответа
         $content = $response->getContent();
         $data = json_decode($content, true);
 
+        // Проверяем наличие ошибок при декодировании JSON
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
         }
 
-        dump($data);
+        // Фильтруем массив offers, оставляем только нужный товар по цвету и размеру
+        if (isset($data['products'][0]['offers'])) {
+            $filteredOffers = array_filter($data['products'][0]['offers'], function($offer) use ($color, $size) {
+                return isset($offer['properties']['color']) && $offer['properties']['color'] === $color
+                    && isset($offer['properties']['size']) && $offer['properties']['size'] === $size;
+            });
+
+            // Переиндексируем массив, чтобы он начинался с 0
+            $filteredOffers = array_values($filteredOffers);
+
+            // Заменяем массив offers на отфильтрованный
+            $data['products'][0]['offers'] = $filteredOffers;
+        }
+        //dump($data);
+        // Возвращаем JSON ответ с отфильтрованными данными
         return new JsonResponse($data);
     }
 
+
+
+
+    /**
+     * @Route("/retailcrm/product/{productId}", name="retailcrm_product")
+     */
+    public function getProduct(string $productId): JsonResponse
+    {
+        // Выполняем запрос к API с передачей параметров фильтрации
+        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/products", [
+            'headers' => [
+                'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
+                'Content-Type' => 'application/json',
+            ],
+            'query' => [
+                'filter[externalId]' => $productId,
+                //'filter[properties][color]' => $color,
+                //'filter[properties][size]' => $size,
+            ],
+        ]);
+
+        // Проверяем статус ответа
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200) {
+            throw new \Exception('Не удалось получить данные: ' . $statusCode);
+        }
+
+        // Получаем контент ответа
+        $content = $response->getContent();
+        $data = json_decode($content, true);
+
+        // Проверяем наличие ошибок при декодировании JSON
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
+        }
+
+
+        //dump($data);
+        // Возвращаем JSON ответ с отфильтрованными данными
+        return new JsonResponse($data);
+    }
     ///////////////////////////////////////////////////////////////////Продукты категории
 
     /**
