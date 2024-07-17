@@ -8,8 +8,8 @@
           <div
             class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors rounded-xl px-4 py-1"
           >
-            <Clapperboard size="32px" />
-            <p class="text-xl font-semibold">Cinema</p>
+            <Store size="32px" />
+            <p class="text-xl font-semibold">Продукты</p>
           </div>
 
           <div class="relative w-full max-w-sm items-center ml-4">
@@ -17,7 +17,7 @@
               v-model="query"
               id="search"
               type="text"
-              placeholder="Введите название аниме"
+              placeholder="Введите название товара"
               class="pl-10 bg-purple-100"
             />
             <span class="absolute start-0 inset-y-0 flex items-center justify-center px-2">
@@ -46,32 +46,48 @@
       </div>
     </header>
     <main class="flex flex-col items-center justify-center pt-36 bg-white">
+      <div>
+        <p class="flex flex-wrap items-center justify-center">Выберите категорию</p>
+        <div class="flex flex-wrap items-center justify-center gap-4 mt-12">
+          <p
+            class="cursor-pointer"
+            v-for="cat in category"
+            :key="cat.externalId"
+            @click="getProduct(cat.externalId)"
+          >
+            {{ cat.name }}
+          </p>
+        </div>
+      </div>
       <headerMain class="grid md:grid-cols-2 xl:grid-cols-3 mb-12 gap-32">
         <card
-          v-for="item in queryItems"
+          v-for="item in items"
           :key="item"
-          class="h-[480px] w-[290px] bg-indigo-100 flex flex-col justify-between border-4 border-black"
+          class="h-[480px] w-[290px] bg-indigo-100 flex flex-col mt-12 justify-between border-4 border-black"
         >
           <headerCard class="flex flex-col items-center mt-4 gap-4">
-            <p class="font-bold">{{ item.title_anime }}</p>
-            <img
-              class="h-[220px] w-[170px]"
-              :src="`http://localhost/view/images/${item.anime_img}`"
-            />
+            <p class="font-bold">{{ item.name }}</p>
+            <img class="h-[220px] w-[170px]" :src="`${item.imageUrl}`" />
           </headerCard>
           <mainCard class="flex flex-col items-start ml-4 gap-1 w-full overflow-hidden">
             <div class="font-semibold">
-              Название:
-              <span class="font-normal text-violet-700">{{ item.title_anime }}</span>
+              Производство:
+              <span class="font-normal text-violet-700">{{ item.manufacturer }}</span>
             </div>
             <div class="font-semibold">
-              Директор: <span class="font-normal text-violet-700">{{ item.director }}</span>
+              Цвета: <span class="font-normal text-violet-700">{{ item.colors[0] }}</span>
             </div>
             <div class="font-semibold">
-              Студия: <span class="font-normal text-violet-700">{{ item.studio_manufacture }}</span>
+              Размеры:
+              <span
+                v-for="(size, index) in item.sizes"
+                :key="index"
+                class="font-normal text-violet-700 ml-2"
+                >{{ size }}</span
+              >
             </div>
             <div class="font-semibold">
-              Жанр: <span class="font-normal text-violet-700">{{ item.name_genre }}</span>
+              Цена: <span class="font-normal text-violet-700">{{ item.minPrice }}</span>
             </div>
           </mainCard>
 
@@ -148,6 +164,7 @@ import { Cog } from 'lucide-vue-next'
 import jsPDF from 'jspdf'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
+import { Store } from 'lucide-vue-next'
 
 const { toast } = useToast()
 
@@ -191,84 +208,56 @@ const addView = async (title, year) => {
   }
 }
 
-// удаляем аниме
-
-const deleteAnime = async (title) => {
-  const formData = new FormData()
-  formData.append('title', title)
-
-  try {
-    const response = await axios.post('http://localhost/deleteAnime', formData)
-
-    console.log(response.data)
-    getProfileUser()
-  } catch (error) {
-    console.error('Ошибка при скачивании файла:', error)
-  }
-}
-
-// скачиваем книгу
-
-const downloadBook = async (id) => {
-  const formData = new FormData()
-  formData.append('id', id)
-
-  console.log(id)
-  try {
-    const response = await axios.post('http://localhost/downloadBook', formData, {
-      responseType: 'Blob'
-    })
-
-    console.log(response.data)
-
-    console.log(response.headers)
-
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'file.txt') // Получаем имя файла из заголовка
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-  } catch (error) {
-    console.error('Ошибка при скачивании файла:', error)
-  }
-}
-
 // поиск
 
-const query = ref('')
+// const query = ref('')
 
-const queryItems = computed(() => {
-  let search = query.value.toLowerCase()
-  let filteredItems = items.value.filter((elem) => {
-    return (
-      elem.title_anime.toLowerCase().includes(search) ||
-      elem.studio_manufacture.toLowerCase().includes(search)
-    )
-  })
+// const queryItems = computed(() => {
+//   let search = query.value.toLowerCase()
+//   let filteredItems = items.value.filter((elem) => {
+//     return (
+//       elem.title_anime.toLowerCase().includes(search) ||
+//       elem.studio_manufacture.toLowerCase().includes(search)
+//     )
+//   })
 
-  return filteredItems
-})
+//   return filteredItems
+// })
 
-let isSearch = computed(() => {
-  return queryItems.value.length === 0
-})
+// let isSearch = computed(() => {
+//   return queryItems.value.length === 0
+// })
 
-// очистка поля
+// // очистка поля
 
-const clearSearch = () => {
-  query.value = ''
-}
+// const clearSearch = () => {
+//   query.value = ''
+// }
 
 const items = ref([])
 
 const avatar = ref('')
 
-const getProfileUser = async () => {
+const category = ref([])
+
+const getCategory = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/retailcrm/user/test@email.for/profile')
-    items.value = response.data
+    const response = await axios.get('http://localhost:8080/retailcrm/category')
+    category.value = response.data.productGroup
+
+    console.log(category.value)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+onMounted(getCategory)
+
+// возвращаем продукты
+const getProduct = async (externalId) => {
+  try {
+    const response = await axios.get(`http://localhost:8080/retailcrm/products/${externalId}`)
+    items.value = response.data.products
 
     console.log(items.value)
   } catch (err) {
@@ -276,39 +265,7 @@ const getProfileUser = async () => {
   }
 }
 
-onMounted(getProfileUser)
-
-const jsonData = ref([])
-
-function generatePDF() {}
-
-// скачиваем топ рейтинг аниме
-const getRating = async () => {
-  try {
-    const response = await axios.get('http://localhost/getTopRating')
-    const animeData = response.data
-
-    console.log(animeData)
-
-    const documentDefinition = {
-      content: []
-    }
-
-    animeData.forEach((elem) => {
-      documentDefinition.content.push({
-        text: `${elem.title_anime}, Рейтинг: ${Math.floor(elem.average_rating)}`,
-        fontSize: 12,
-        margin: [0, 0, 0, 10] // отступы сверху, справа, снизу, слева
-      })
-    })
-
-    pdfMake.vfs = pdfFonts.pdfMake.vfs // Регистрируем шрифты
-
-    pdfMake.createPdf(documentDefinition).download('newFile.pdf')
-  } catch (err) {
-    console.error(err)
-  }
-}
+onMounted(getProduct)
 
 console.log(localStorage)
 

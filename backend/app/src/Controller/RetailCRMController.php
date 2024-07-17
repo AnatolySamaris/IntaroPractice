@@ -110,7 +110,7 @@ class RetailCRMController extends AbstractController
             throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
         }
 
-        dump($data);
+      //  dump($data);
         return new JsonResponse($data);
     }
 
