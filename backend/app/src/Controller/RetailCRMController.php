@@ -117,15 +117,18 @@ class RetailCRMController extends AbstractController
 
     //Профиль пользователя (информация о конкретном пользователе)
     /**
-     * @Route("/retailcrm/user/{userID}/profile", name="retailcrm_user_profile")
+     * @Route("/retailcrm/user/{email}/profile", name="retailcrm_user_profile")
      */
-    public function getUserProfile(string $userID): JsonResponse
+    public function getUserProfile(string $email): JsonResponse
     {
 
-        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/customers/$userID", [
+        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/customers", [
             'headers' => [
                 'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
                 'Content-Type' => 'application/json',
+            ],
+            'query' => [
+                'filter[email]' => $email,
             ],
         ]);
 
@@ -141,7 +144,7 @@ class RetailCRMController extends AbstractController
             throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
         }
 
-        dump($data);
+        //dump($data);
         return new JsonResponse($data);
     }
 
@@ -200,6 +203,38 @@ class RetailCRMController extends AbstractController
 
 
 
+    //Категории
+    /**
+     * @Route("/retailcrm/сategory", name="retailcrm_сategory")
+     */
+    public function getCategory(): JsonResponse
+    {
+        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/product-groups", [
+            'headers' => [
+                'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
+                'Content-Type' => 'application/json',
+            ],
+            'query' => [
+                //'filter[email]' => $email,
+            ],
+        ]);
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200) {
+            throw new \Exception('Не удалось получить данные: ' . $statusCode);
+        }
+
+        $content = $response->getContent();
+        $data = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
+        }
+
+        //dump($data);
+        return new JsonResponse($data);
+    }
+
 
     /**
      * @Route("/retailcrm/product/{productId}", name="retailcrm_product")
@@ -244,136 +279,63 @@ class RetailCRMController extends AbstractController
     /**
      * @Route("/retailcrm/products/{groupId}", name="retailcrm_products_category")
      */
-    // public function getProducts_category(string $groupId): JsonResponse
-    // {
-    //     $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/products", [
-    //         'headers' => [
-    //             'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
-    //             'Content-Type' => 'application/json',
-    //         ],
-    //         'query' => [
-    //             'filter[groupExternalId]' => $groupId,
-    //             //'filter[properties][size]' => 'S',
-    //             //'filter[properties][color]' => 'белый',
-    //         ],
-    //     ]);
-
-    //     $statusCode = $response->getStatusCode();
-    //     if ($statusCode !== 200) {
-    //         throw new \Exception('Не удалось получить данные: ' . $statusCode);
-    //     }
-
-    //     $content = $response->getContent();
-    //     $data = json_decode($content, true);
-
-    //     if (json_last_error() !== JSON_ERROR_NONE) {
-    //         throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
-    //     }
-
-    //     // Инициализация массива продуктов
-    //     $products = $data['products'] ?? [];
-
-    //     foreach ($products as &$product) {
-    //         $colors = [];
-    //         $sizes = [];
-
-    //         foreach ($product['offers'] as $offer) {
-    //             $properties = $offer['properties'] ?? [];
-
-    //             if (isset($properties['color']) && !in_array($properties['color'], $colors)) {
-    //                 $colors[] = $properties['color'];
-    //             }
-
-    //             if (isset($properties['size']) && !in_array($properties['size'], $sizes)) {
-    //                 $sizes[] = $properties['size'];
-    //             }
-    //         }
-
-    //         // Добавление массивов цветов и размеров к продукту
-    //         $product['colors'] = $colors;
-    //         $product['sizes'] = $sizes;
-    //     }
-
-    //     // Обновление данных продуктов
-    //     $data['products'] = $products;
-
-    //     //dump($data);
-
-    //     return new JsonResponse($data);
-    // }
-
-    public function getProducts_category(): JsonResponse
+    public function getProducts_category(string $groupId): JsonResponse
     {
-        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/product-groups", [
+        $response = $this->httpClient->request('GET', "https://popova.retailcrm.ru/api/v5/store/products", [
             'headers' => [
                 'X-API-Key' => 'ZhdjJq9SoNSkxGK3lwmNdCvdxaKKNFiE',
                 'Content-Type' => 'application/json',
             ],
             'query' => [
-                //'filter[groupExternalId]' => $groupId,
+                'filter[groupExternalId]' => $groupId,
                 //'filter[properties][size]' => 'S',
                 //'filter[properties][color]' => 'белый',
             ],
         ]);
-
 
         $statusCode = $response->getStatusCode();
         if ($statusCode !== 200) {
             throw new \Exception('Не удалось получить данные: ' . $statusCode);
         }
 
-
         $content = $response->getContent();
         $data = json_decode($content, true);
-
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \Exception('Некорректный JSON ответ: ' . json_last_error_msg());
         }
 
-
         // Инициализация массива продуктов
         $products = $data['products'] ?? [];
-
 
         foreach ($products as &$product) {
             $colors = [];
             $sizes = [];
 
-
             foreach ($product['offers'] as $offer) {
                 $properties = $offer['properties'] ?? [];
-
 
                 if (isset($properties['color']) && !in_array($properties['color'], $colors)) {
                     $colors[] = $properties['color'];
                 }
-
 
                 if (isset($properties['size']) && !in_array($properties['size'], $sizes)) {
                     $sizes[] = $properties['size'];
                 }
             }
 
-
             // Добавление массивов цветов и размеров к продукту
             $product['colors'] = $colors;
             $product['sizes'] = $sizes;
         }
 
-
         // Обновление данных продуктов
         $data['products'] = $products;
 
-
         //dump($data);
-
 
         return new JsonResponse($data);
     }
-
-
-
 
 
 }

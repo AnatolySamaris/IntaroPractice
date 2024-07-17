@@ -201,7 +201,7 @@ const deleteAnime = async (title) => {
     const response = await axios.post('http://localhost/deleteAnime', formData)
 
     console.log(response.data)
-    animeFetch()
+    getProfileUser()
   } catch (error) {
     console.error('Ошибка при скачивании файла:', error)
   }
@@ -265,9 +265,9 @@ const items = ref([])
 
 const avatar = ref('')
 
-const animeFetch = async () => {
+const getProfileUser = async () => {
   try {
-    const response = await axios.get('http://localhost/anime')
+    const response = await axios.get('http://localhost:8080/retailcrm/user/test@email.for/profile')
     items.value = response.data
 
     console.log(items.value)
@@ -276,7 +276,7 @@ const animeFetch = async () => {
   }
 }
 
-onMounted(animeFetch)
+onMounted(getProfileUser)
 
 const jsonData = ref([])
 

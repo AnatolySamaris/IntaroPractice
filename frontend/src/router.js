@@ -8,7 +8,6 @@ import HistoryView from './views/HistoryView.vue'
 import SettingsView from './views/SettingsView.vue'
 import addAnime from './views/addAnime.vue'
 import editAnime from './views/editAnime.vue'
-import animeCard from './views/animeCard.vue'
 
 export const router = createRouter({
   routes: [
@@ -49,10 +48,6 @@ export const router = createRouter({
     {
       path: '/editAnime/:id',
       component: editAnime
-    },
-    {
-      path: '/animeCard/:id',
-      component: animeCard
     }
   ],
   history: createWebHistory()

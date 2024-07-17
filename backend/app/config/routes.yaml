@@ -10,7 +10,7 @@ retailcrm_orders1:
   controller: App\Controller\RetailCRMController::getCustomerOrders
 
 retailcrm_orders2:
-  path: /retailcrm/user/{userID}/profile
+  path: /retailcrm/user/{email}/profile
   controller: App\Controller\RetailCRMController::getUserProfile
 
 retailcrm_orders3:
@@ -18,12 +18,15 @@ retailcrm_orders3:
   controller: App\Controller\RetailCRMController::getProductDetails
 retailcrm_orders4:
   path: /retailcrm/product/{productId}
-  controller: App\Controller\RetailCRMController::getProductDetails
+  controller: App\Controller\RetailCRMController::getProduct
+retailcrm_orders6:
+  path: /retailcrm/products/{groupId}
+  controller: App\Controller\RetailCRMController::getProducts_category
 
 get_uuid:
   path: /uuid
   controller: App\Controller\BaseController::uuid_get
 
-retailcrm_orders6:
-  path: /retailcrm/products/
-  controller: App\Controller\RetailCRMController::getProducts_category
+retailcrm_orders7:
+  path: /retailcrm/category
+  controller: App\Controller\RetailCRMController::getCategory
