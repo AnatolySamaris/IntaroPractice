@@ -11,7 +11,18 @@
 3. Запускам проект с помщоью команды `npm run dev`
 4. Готово, фронт запущен
 
-## Backend
+
+## Backend (Edited)
+1. `cd backend`
+2. `docker compose up --build -d`
+3. `docker exec -it php81-container bash`
+4. (Внутри контейнера) `composer install`
+(если спросит, для retailcrm/api-client-php разрешаем компиляцию, выбираем [y] или [a])
+5. `php bin/console doctrine:migrations:migrate` (если нет последней версии с авторизацией)
+6. `symfony server:start --port=8080 -d`
+
+
+## Backend 
 
 1. Заходим в папку backend `cd backend`
 2. Запускаем docker службу
