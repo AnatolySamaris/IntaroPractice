@@ -20,14 +20,16 @@
         "symfony/form": "6.1.*",
         "symfony/framework-bundle": "6.1.*",
         "symfony/http-client": "6.1.*",
+        "symfony/property-access": "6.1.*",
         "symfony/polyfill-uuid": "^1.30",
         "symfony/runtime": "6.1.*",
         "symfony/security-bundle": "6.1.*",
+        "symfony/serializer": "6.1.*",
         "symfony/twig-bundle": "6.1.*",
         "symfony/validator": "6.1.*",
         "symfony/yaml": "6.1.*",
-        "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "twig/extra-bundle": "*",
+        "twig/twig": "*"
     },
     "config": {
         "allow-plugins": {
@@ -81,7 +83,8 @@
         "symfony": {
             "allow-contrib": false,
             "require": "6.1.*"
-        }
+        },
+        "compile-whitelist": ["retailcrm/api-client-php"]
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.6",
