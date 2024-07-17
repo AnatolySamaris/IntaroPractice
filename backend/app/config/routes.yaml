@@ -1,25 +1,29 @@
 controllers:
-    resource: ../src/Controller/
-    type: attribute
+  resource: ../src/Controller/
+  type: attribute
 retailcrm_orders:
-    path: /retailcrm/orders
-    controller: App\Controller\RetailCRMController::getOrders
+  path: /retailcrm/orders
+  controller: App\Controller\RetailCRMController::getOrders
 
 retailcrm_orders1:
-    path: /retailcrm/customer/{email}/orders
-    controller: App\Controller\RetailCRMController::getCustomerOrders
-
+  path: /retailcrm/customer/{email}/orders
+  controller: App\Controller\RetailCRMController::getCustomerOrders
 
 retailcrm_orders2:
-    path: /retailcrm/user/{userID}/profile
-    controller: App\Controller\RetailCRMController::getUserProfile
+  path: /retailcrm/user/{userID}/profile
+  controller: App\Controller\RetailCRMController::getUserProfile
 
 retailcrm_orders3:
-    path: /retailcrm/product/{productId}/{color}/{size}
-    controller: App\Controller\RetailCRMController::getProductDetails
+  path: /retailcrm/product/{productId}/{color}/{size}
+  controller: App\Controller\RetailCRMController::getProductDetails
 retailcrm_orders4:
-    path: /retailcrm/product/{productId}
-    controller: App\Controller\RetailCRMController::getProduct
+  path: /retailcrm/product/{productId}
+  controller: App\Controller\RetailCRMController::getProductDetails
+
+get_uuid:
+  path: /uuid
+  controller: App\Controller\BaseController::uuid_get
+
 retailcrm_orders6:
-    path: /retailcrm/products/{groupId}
-    controller: App\Controller\RetailCRMController::getProducts_category
+  path: /retailcrm/products/
+  controller: App\Controller\RetailCRMController::getProducts_category
