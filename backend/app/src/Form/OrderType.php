@@ -10,7 +10,6 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -37,9 +36,6 @@ class OrderType extends AbstractType
                     new Length([
                         'min' => 3
                     ]),
-                    new NotBlank([
-                        'message' => 'Введите фамилию'
-                    ]),
                 ],
             ])
             ->add('patronymic', TextType::class, [
@@ -48,9 +44,6 @@ class OrderType extends AbstractType
                     new Length([
                         'min' => 3
                     ]),
-                    new NotBlank([
-                        'message' => 'Введите отчество'
-                    ]),
                 ],
             ])
             ->add('email', EmailType::class, [
@@ -58,6 +51,9 @@ class OrderType extends AbstractType
                 'constraints' => [
                     new Regex([
                         'pattern' => '/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/'
+                    ]),
+                    new NotBlank([
+                        'message' => 'Введите адрес доставки'
                     ]),
                 ],
             ])
@@ -86,8 +82,26 @@ class OrderType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('paymentType')
-            ->add('deliveryType')
+            ->add('deliveryType', ChoiceType::class, [
+                'required' => true,
+                'choices' => [
+                    'Самовывоз' => 'self-delivery',
+                    'Почта России' => 'russian-post',
+                    'EMS Почта России' => 'ems',
+                    'Доставка курьером' => 'courier',
+                    'СДЭК v.2' => 'sdek-v-2' 
+                ]
+            ])
+            ->add('paymentType', ChoiceType::class, [
+                'required' => true,
+                'choices' => [
+                    'Наличными' => 'cash',
+                    'Банковской картой' => 'bank-card',
+                    'Банковский перевод' => 'bank-transfer',
+                    'eMoney' => 'e-money',
+                    'В рассрочку' => 'credit'
+                ]
+            ])
         ;
     }
 

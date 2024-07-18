@@ -14,7 +14,6 @@ use RetailCrm\Api\Model\Request\Store\ProductsRequest;
 
 use App\DTO\CartDTO;
 
-
 #[Route('/api/cart')]
 class CartController extends AbstractController
 {
@@ -25,20 +24,8 @@ class CartController extends AbstractController
     #[Route('/', name: 'app_get_cart', methods: ['get'])]
     public function getCart(SessionInterface $session): JsonResponse
     {
-        $crmClient = SimpleClientFactory::createClient(
-            $this->getParameter('crm_host'),
-            $this->getParameter('api_key')
-        );
-
-        try {
-            $cart_data = $session->get('cart', []);
-            return $this->json($cart_data);
-        } catch (\Exception $exception) {
-            return $this->json(
-                ['error' => $exception->getMessage()],
-                400
-            );
-        }
+        $cart_data = $session->get('cart', []);
+        return $this->json($cart_data);
     }
 
     #[Route('/add/{product_uuid}', name: 'app_add_cart_item', methods: ['post'])]
