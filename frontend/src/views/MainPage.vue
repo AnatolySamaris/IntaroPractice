@@ -42,7 +42,7 @@
           <Button @click="goToProfile" class="w-[10px]" variant="link">Профиль</Button>
           <Button @click="goToAuth" class="w-[10px]" variant="link">Выйти</Button>
         </nav>
-        <Button v-else @click="goToAuth" class="w-[10px]" variant="link">Войти</Button>
+        <!-- <Button v-else @click="goToAuth" class="w-[10px]" variant="link">Войти</Button> -->
       </div>
     </header>
     <main class="flex flex-col items-center justify-center pt-36 bg-white">
@@ -50,7 +50,7 @@
         <p class="flex flex-wrap items-center justify-center">Выберите категорию</p>
         <div class="flex flex-wrap items-center justify-center gap-4 mt-12">
           <p
-            class="cursor-pointer"
+            class="cursor-pointer hover:text-sky-700"
             v-for="cat in category"
             :key="cat.externalId"
             @click="getProduct(cat.externalId)"
@@ -133,7 +133,7 @@
     </main>
 
     <footer class="border-4 border-indigo-100 border-t-purple-500">
-      <p class="text-x font-semibold ml-4">@ Дод И Ко</p>
+      <p class="text-x font-semibold ml-4">@ Intaro-Practice-2024</p>
     </footer>
   </div>
 </template>

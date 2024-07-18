@@ -51,7 +51,7 @@ class UsersAuthenticator extends AbstractLoginFormAuthenticator
         }
             
         // For example:
-         return new RedirectResponse('/');
+         return new RedirectResponse('http://localhost:5173/');
         //throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
     }
 
